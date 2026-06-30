@@ -5,20 +5,48 @@ import numpy as np
 import cv2
 
 
+# class UNetBlock(nn.Module):
+#     def __init__(self, in_ch, out_ch, down=True, activation='relu', dropout=0.0, norm=True):
+#         super().__init__()
+#         layers = [
+#             nn.Conv2d(in_ch, out_ch, 4, stride=2 if down else 1, padding=1),
+#         ]
+#         if norm:
+#             layers.append(nn.BatchNorm2d(out_ch))
+#         if activation == 'relu':
+#             layers.append(nn.ReLU(inplace=True))
+#         elif activation == 'lrelu':
+#             layers.append(nn.LeakyReLU(0.2, inplace=True))
+#         if dropout > 0:
+#             layers.append(nn.Dropout(dropout))
+#         self.block = nn.Sequential(*layers)
+
 class UNetBlock(nn.Module):
     def __init__(self, in_ch, out_ch, down=True, activation='relu', dropout=0.0, norm=True):
         super().__init__()
-        layers = [
-            nn.Conv2d(in_ch, out_ch, 4, stride=2 if down else 1, padding=1),
-        ]
+
+        layers: list[nn.Module] = []
+        layers.append(
+            nn.Conv2d(
+                in_ch,
+                out_ch,
+                kernel_size=4,
+                stride=2 if down else 1,
+                padding=1,
+            )
+        )
+
         if norm:
             layers.append(nn.BatchNorm2d(out_ch))
+
         if activation == 'relu':
             layers.append(nn.ReLU(inplace=True))
         elif activation == 'lrelu':
             layers.append(nn.LeakyReLU(0.2, inplace=True))
+
         if dropout > 0:
             layers.append(nn.Dropout(dropout))
+
         self.block = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -152,9 +180,13 @@ class IR2RGB:
         h, w = ir_image.shape[:2]
         tensor = torch.from_numpy(ir_image.astype(np.float32) / 255.0)
         tensor = tensor.view(1, 1, h, w).to(self.device)
-
+        
+        if self.generator is None:
+            raise RuntimeError("Generator model is not initialized")
         with torch.no_grad():
             output = self.generator(tensor)
+            
+
 
         output = output.squeeze().permute(1, 2, 0).cpu().numpy()
         output = ((output + 1) * 127.5).clip(0, 255).astype(np.uint8)

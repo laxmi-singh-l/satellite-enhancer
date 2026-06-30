@@ -11,7 +11,11 @@ import time
 from io import BytesIO
 from PIL import Image
 
-from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
+# from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
+from models.super_resolution import IRSuperResolution
+from models.ir2rgb import IR2RGB
+from models.segmenter import LandCoverSegmenter
+
 from analysis import SceneAnalyzer
 from utils import (
     load_image, save_image,
