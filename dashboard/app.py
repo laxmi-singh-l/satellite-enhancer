@@ -1,16 +1,9 @@
 import sys
 from pathlib import Path
-# import models.super_resolution
-# from models.colorize import IR2RGB
-# from models.segmenter import LandCoverSegmenter
 
-
-# Ensure the project root (parent of 'dashboard') is on sys.path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 import numpy as np
@@ -20,11 +13,7 @@ import time
 from io import BytesIO
 from PIL import Image
 
-# from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
-from models.super_resolution import IRSuperResolution
-from models.colorize import IR2RGB
-from models.segmenter import LandCoverSegmenter
-
+from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
 from analysis import SceneAnalyzer
 from utils import (
     load_image, save_image,
@@ -58,7 +47,7 @@ st.markdown("""
 
 @st.cache_resource
 def load_enhancer():
-    return models.super_resolution.IRSuperResolution(scale=4)
+    return IRSuperResolution(scale=4)
 
 
 @st.cache_resource
@@ -261,19 +250,16 @@ def main():
 
         st.subheader('Legend')
         legend_cols = st.columns(4)
-        for i, (class_id, (name, color)) in enumerate(
-            sorted({
-                k: v for k, v in [
-                    (0, ('water', (60, 119, 181))),
-                    (1, ('forest', (34, 139, 34))),
-                    (2, ('agriculture', (154, 205, 50))),
-                    (3, ('urban', (178, 34, 34))),
-                    (4, ('barren', (210, 180, 140))),
-                    (5, ('wetland', (0, 206, 209))),
-                    (6, ('grassland', (124, 252, 0))),
-                ]
-            }.items())
-        ):
+        legend_data = [
+            (0, ('water', (60, 119, 181))),
+            (1, ('forest', (34, 139, 34))),
+            (2, ('agriculture', (154, 205, 50))),
+            (3, ('urban', (178, 34, 34))),
+            (4, ('barren', (210, 180, 140))),
+            (5, ('wetland', (0, 206, 209))),
+            (6, ('grassland', (124, 252, 0))),
+        ]
+        for i, (class_id, (name, color)) in enumerate(legend_data):
             with legend_cols[i % 4]:
                 r, g, b = color
                 st.markdown(

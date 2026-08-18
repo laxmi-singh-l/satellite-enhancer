@@ -58,7 +58,10 @@ class DeepLabV3Segmenter:
 
     def segment(self, image: np.ndarray) -> np.ndarray:
         if self.model is not None:
-            return self._segment_deeplab(image)
+            try:
+                return self._segment_deeplab(image)
+            except (RuntimeError, Exception):
+                self.model = None
         return self._segment_fallback(image)
 
     def _segment_deeplab(self, image: np.ndarray) -> np.ndarray:
@@ -154,19 +157,23 @@ class LandCoverSegmenter:
         if self.yolo is None:
             return self._detect_objects_fallback(image)
 
-        img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        results = self.yolo(img_rgb, verbose=False)
-        detections = []
-        for r in results:
-            if r.boxes is None:
-                continue
-            for box, cls, conf in zip(r.boxes.xyxy, r.boxes.cls, r.boxes.conf):
-                detections.append({
-                    'bbox': box.tolist(),
-                    'class': r.names[int(cls)],
-                    'confidence': float(conf),
-                })
-        return detections
+        try:
+            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            results = self.yolo(img_rgb, verbose=False)
+            detections = []
+            for r in results:
+                if r.boxes is None:
+                    continue
+                for box, cls, conf in zip(r.boxes.xyxy, r.boxes.cls, r.boxes.conf):
+                    detections.append({
+                        'bbox': box.tolist(),
+                        'class': r.names[int(cls)],
+                        'confidence': float(conf),
+                    })
+            return detections
+        except (RuntimeError, Exception):
+            self.yolo = None
+            return self._detect_objects_fallback(image)
 
     @staticmethod
     def _detect_objects_fallback(image: np.ndarray) -> list:
@@ -214,20 +221,24 @@ class ObjectDetector:
         return self._detect_fallback(image)
 
     def _detect_yolo(self, image: np.ndarray, conf_threshold: float) -> list:
-        img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        results = self.yolo(img_rgb, verbose=False)
-        detections = []
-        for r in results:
-            if r.boxes is None:
-                continue
-            for box, cls, conf in zip(r.boxes.xyxy, r.boxes.cls, r.boxes.conf):
-                if float(conf) >= conf_threshold:
-                    detections.append({
-                        'bbox': box.tolist(),
-                        'class': r.names[int(cls)],
-                        'confidence': float(conf),
-                    })
-        return detections
+        try:
+            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            results = self.yolo(img_rgb, verbose=False)
+            detections = []
+            for r in results:
+                if r.boxes is None:
+                    continue
+                for box, cls, conf in zip(r.boxes.xyxy, r.boxes.cls, r.boxes.conf):
+                    if float(conf) >= conf_threshold:
+                        detections.append({
+                            'bbox': box.tolist(),
+                            'class': r.names[int(cls)],
+                            'confidence': float(conf),
+                        })
+            return detections
+        except (RuntimeError, Exception):
+            self.yolo = None
+            return self._detect_fallback(image)
 
     @staticmethod
     def _detect_fallback(image: np.ndarray) -> list:

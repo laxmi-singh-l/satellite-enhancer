@@ -3,9 +3,9 @@
 Satellite IR Enhancement & Analysis System — CLI Entry Point
 
 Usage:
-    python run.py --image samples/ir_input.png
-    python run.py --image samples/ir_input.png --output results/
-    python run.py --image samples/ir_input.png --report-only
+    python drawing/run.py --image samples/ir_input.png
+    python drawing/run.py --image samples/ir_input.png --output results/
+    python drawing/run.py --image samples/ir_input.png --report-only
 """
 
 import sys
@@ -13,8 +13,10 @@ import argparse
 import json
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR))
 
+import cv2
 from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
 from analysis import SceneAnalyzer
 from utils import load_image, save_image, create_segmentation_overlay, colorize_segmentation_mask, draw_detections
@@ -67,12 +69,12 @@ def main():
         save_image(overlay, str(output_dir / '03_segmentation_overlay.png'))
 
         if objects:
-            detections_vis = draw_detections(enhanced if enhanced.ndim == 3 else cv2.cvtColor(enhanced, cv2.COLOR_GRAY2RGB), objects)
+            enhanced_rgb = enhanced if enhanced.ndim == 3 else cv2.cvtColor(enhanced, cv2.COLOR_GRAY2RGB)
+            detections_vis = draw_detections(enhanced_rgb, objects)
             detections_vis = cv2.cvtColor(detections_vis, cv2.COLOR_RGB2BGR)
             cv2.imwrite(str(output_dir / '04_detections.png'), detections_vis)
 
     print('[4/5] Colorizing IR to RGB...')
-    import cv2
     if enhanced.ndim == 2:
         enhanced_vis = cv2.cvtColor(enhanced, cv2.COLOR_GRAY2RGB)
     else:
