@@ -12,8 +12,7 @@ def colorize_segmentation_mask(mask: np.ndarray) -> np.ndarray:
     return rgb
 
 
-def create_segmentation_overlay(image: np.ndarray, mask: np.ndarray,
-                                 alpha: float = 0.5) -> np.ndarray:
+def create_segmentation_overlay(image: np.ndarray, mask: np.ndarray,alpha: float = 0.5) -> np.ndarray:
     if image.ndim == 2:
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
     elif image.shape[2] == 4:
