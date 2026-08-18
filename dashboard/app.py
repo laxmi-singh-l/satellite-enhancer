@@ -1,5 +1,14 @@
 import sys
 from pathlib import Path
+# import models.super_resolution
+# from models.colorize import IR2RGB
+# from models.segmenter import LandCoverSegmenter
+
+
+# Ensure the project root (parent of 'dashboard') is on sys.path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -13,7 +22,7 @@ from PIL import Image
 
 # from models import IRSuperResolution, IR2RGB, LandCoverSegmenter
 from models.super_resolution import IRSuperResolution
-from models.ir2rgb import IR2RGB
+from models.colorize import IR2RGB
 from models.segmenter import LandCoverSegmenter
 
 from analysis import SceneAnalyzer
@@ -49,7 +58,7 @@ st.markdown("""
 
 @st.cache_resource
 def load_enhancer():
-    return IRSuperResolution(scale=4)
+    return models.super_resolution.IRSuperResolution(scale=4)
 
 
 @st.cache_resource

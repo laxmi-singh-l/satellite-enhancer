@@ -204,9 +204,9 @@
 
 #     def __call__(self, ir_image: np.ndarray, seg_mask: np.ndarray | None = None) -> np.ndarray:
 #         return self.colorize(ir_image, seg_mask)
-
 import torch
 import torch.nn as nn
+
 import numpy as np
 import cv2
 
@@ -215,8 +215,7 @@ class UNetBlock(nn.Module):
     def __init__(self, in_ch, out_ch, down=True, activation='relu', dropout=0.0, norm=True):
         super().__init__()
 
-        layers: list[nn.Module] = []
-        layers.append(
+        layers: list[nn.Module] = [
             nn.Conv2d(
                 in_ch,
                 out_ch,
@@ -224,7 +223,7 @@ class UNetBlock(nn.Module):
                 stride=2 if down else 1,
                 padding=1,
             )
-        )
+        ]
 
         if norm:
             layers.append(nn.BatchNorm2d(out_ch))
